@@ -22,6 +22,7 @@ This guide are only needed if you intend to migrate from legacy `Akka.Persistenc
    + [HOCON Migration](#hocon-migration)
 * [Upgrading to Tag Table (Optional)](#upgrading-to-tag-table-optional)
 * [Enable WriterUuid Anti-Corruption Layer Feature (Recommended)](#enable-writeruuid-anti-corruption-layer-feature-recommended)
+* [Disable Delete Compatibility Mode (Optional)](#disable-delete-compatibility-mode-optional)
 
 # Migrating Using Compatibility Mode
 
@@ -219,3 +220,13 @@ To migrate your database to use the new WriterUuid feature, follow these steps:
    akka.persistence.journal.sql.{mapping-name}.journal.use-writer-uuid-column = true
    ```
 5. Bring the cluster back up.
+
+# Disable Delete Compatibility Mode (Optional)
+
+When you set `deleteCompatibilityMode` to `true`, `Akka.Persistence.Sql` will use the old `Akka.Persistence.Sql.Common` journal entry deletion implementation that is slower compared to the new `Akka.Persistence.Sql` implementation. Setting this to `false` will improve performance, however, manually migrating the old implementation table entries to the new one is error-prone and can cause data corruption, so we highly discourage you to do this.
+
+There is an edge case where you can set `deleteCompatibilityMode` to `false`, that is if you've **never** deletes anything from your journal table. Technically, the way you can make sure that you can set `deleteCompatibilityMode` to `false` and be able to delete the journal metadata table is by making sure that your use case satisfies the following criteria:
+
+1. Your cluster **only** consist of nodes that uses `Akka.Persistence.Sql` persistence.
+2. Your journal metadata table is completely empty
+3. None of your journal entries `isDeleted` column is `true`
