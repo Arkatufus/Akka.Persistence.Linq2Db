@@ -22,7 +22,8 @@ namespace Akka.Persistence.Sql.Db
 
             #region SqlServer
             if (config.ProviderName.StartsWith(ProviderName.SqlServer))
-                return @$";
+                return $"""
+;
 
 IF NOT EXISTS (
     SELECT 1
@@ -86,12 +87,13 @@ BEGIN CATCH
         THROW;
     END
 END CATCH;
-";
+""";
             #endregion
 
             #region MySql
             if (config.ProviderName.StartsWith(ProviderName.MySql))
-                return $@";
+                return $"""
+;
 
 SET @akka_journal_setup = IF(
 	EXISTS (
@@ -134,7 +136,8 @@ SET @akka_journal_setup = IF(
 );
 PREPARE akka_statement_journal_setup FROM @akka_journal_setup;
 EXECUTE akka_statement_journal_setup;
-DEALLOCATE PREPARE akka_statement_journal_setup;";
+DEALLOCATE PREPARE akka_statement_journal_setup;
+""";
             #endregion
 
             #region PostgreSql
@@ -145,7 +148,8 @@ DEALLOCATE PREPARE akka_statement_journal_setup;";
                     ? tableName
                     : $"\"{config.TableConfig.SchemaName}\".\"{tableName}\"";
 
-                return $@";
+                return $"""
+;
 do $BLOCK$
 begin
 	begin
@@ -170,16 +174,18 @@ begin
 	end;
 end;
 $BLOCK$
-";
+""";
             }
             #endregion
 
             #region Sqlite
             if (config.ProviderName.StartsWith(ProviderName.SQLite))
-                return $@";
+                return $"""
+;
 CREATE UNIQUE INDEX IF NOT EXISTS {tableName}_uq ON {journalFullTableName} ({columns.PersistenceId}, {columns.SequenceNumber});
 CREATE INDEX IF NOT EXISTS {tableName}_{columns.Created}_idx ON {journalFullTableName} ({columns.Created});
-CREATE INDEX IF NOT EXISTS {tableName}_{columns.SequenceNumber}_idx ON {journalFullTableName} ({columns.SequenceNumber});";
+CREATE INDEX IF NOT EXISTS {tableName}_{columns.SequenceNumber}_idx ON {journalFullTableName} ({columns.SequenceNumber});
+""";
             #endregion
 
             return null;
@@ -195,7 +201,8 @@ CREATE INDEX IF NOT EXISTS {tableName}_{columns.SequenceNumber}_idx ON {journalF
 
             #region SqlServer
             if (config.ProviderName.StartsWith(ProviderName.SqlServer))
-                return $@";
+                return $"""
+;
 
 IF NOT EXISTS (
     SELECT 1
@@ -238,12 +245,14 @@ BEGIN CATCH
         THROW;
     END
 END CATCH;
-";
+
+""";
             #endregion
 
             #region MySql
             if (config.ProviderName.StartsWith(ProviderName.MySql))
-                return $@";
+                return $"""
+;
 
 SET @akka_journal_setup = IF(
 	EXISTS (
@@ -269,7 +278,8 @@ SET @akka_journal_setup = IF(
 );
 PREPARE akka_statement_journal_setup FROM @akka_journal_setup;
 EXECUTE akka_statement_journal_setup;
-DEALLOCATE PREPARE akka_statement_journal_setup;";
+DEALLOCATE PREPARE akka_statement_journal_setup;
+""";
             #endregion
 
             #region PostgreSql
@@ -280,7 +290,8 @@ DEALLOCATE PREPARE akka_statement_journal_setup;";
                     ? tableName
                     : $"\"{config.TableConfig.SchemaName}\".\"{tableName}\"";
 
-                return $@";
+                return $"""
+;
 do $BLOCK$
 begin
 	begin
@@ -298,15 +309,17 @@ begin
 	end;
 end;
 $BLOCK$
-";
+""";
             }
             #endregion
 
             #region Sqlite
             if (config.ProviderName.StartsWith(ProviderName.SQLite))
-                return $@";
+                return $"""
+;
 CREATE INDEX IF NOT EXISTS {tableName}_{columns.PersistenceId}_{columns.SequenceNumber}_idx ON {tagFullTableName} ({columns.PersistenceId}, {columns.SequenceNumber});
-CREATE INDEX IF NOT EXISTS {tableName}_{columns.Tag}_idx ON {tagFullTableName} ({columns.Tag});";
+CREATE INDEX IF NOT EXISTS {tableName}_{columns.Tag}_idx ON {tagFullTableName} ({columns.Tag});
+""";
             #endregion
 
             return null;
@@ -322,7 +335,8 @@ CREATE INDEX IF NOT EXISTS {tableName}_{columns.Tag}_idx ON {tagFullTableName} (
 
             #region SqlServer
             if (config.ProviderName.StartsWith(ProviderName.SqlServer))
-                return @$";
+                return $"""
+;
 
 IF NOT EXISTS (
     SELECT 1
@@ -365,12 +379,13 @@ BEGIN CATCH
         THROW;
     END
 END CATCH;
-";
+""";
             #endregion
 
             #region MySql
             if (config.ProviderName.StartsWith(ProviderName.MySql))
-                return $@";
+                return $"""
+;
 
 SET @akka_journal_setup = IF(
 	EXISTS (
@@ -396,7 +411,8 @@ SET @akka_journal_setup = IF(
 );
 PREPARE akka_statement_journal_setup FROM @akka_journal_setup;
 EXECUTE akka_statement_journal_setup;
-DEALLOCATE PREPARE akka_statement_journal_setup;";
+DEALLOCATE PREPARE akka_statement_journal_setup;
+""";
             #endregion
 
             #region PostgreSql
@@ -407,7 +423,8 @@ DEALLOCATE PREPARE akka_statement_journal_setup;";
                     ? tableName
                     : $"\"{config.TableConfig.SchemaName}\".\"{tableName}\"";
 
-                return $@";
+                return $"""
+;
 do $BLOCK$
 begin
 	begin
@@ -425,15 +442,17 @@ begin
 	end;
 end;
 $BLOCK$
-";
+""";
             }
             #endregion
 
             #region Sqlite
             if (config.ProviderName.StartsWith(ProviderName.SQLite))
-                return $@";
+                return $"""
+;
 CREATE INDEX IF NOT EXISTS {tableName}_{columns.SequenceNumber}_idx ON {fullTableName} ({columns.SequenceNumber});
-CREATE INDEX IF NOT EXISTS {tableName}_{columns.Created}_idx ON {fullTableName} ({columns.Created});";
+CREATE INDEX IF NOT EXISTS {tableName}_{columns.Created}_idx ON {fullTableName} ({columns.Created});
+""";
             #endregion
 
             return null;
