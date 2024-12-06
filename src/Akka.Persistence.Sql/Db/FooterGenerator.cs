@@ -87,6 +87,48 @@ BEGIN CATCH
         THROW;
     END
 END CATCH;
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.indexes
+    WHERE 
+        object_id = OBJECT_ID('{journalFullTableName}') AND
+        name = 'IX_{tableName}_{columns.PersistenceId}_{columns.Ordering}'
+)
+BEGIN TRY
+    CREATE INDEX IX_{tableName}_{columns.PersistenceId}_{columns.Ordering} ON {journalFullTableName}({columns.PersistenceId}, {columns.Ordering});
+END TRY
+BEGIN CATCH
+    IF ERROR_NUMBER() = 1913 -- Error code for 'index already exists'
+    BEGIN
+        PRINT 'Index IX_{tableName}_{columns.PersistenceId}_{columns.Ordering} already exists, skipping.';
+    END
+    ELSE
+    BEGIN
+        THROW;
+    END
+END CATCH;
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.indexes
+    WHERE 
+        object_id = OBJECT_ID('{journalFullTableName}') AND
+        name = 'IX_{tableName}_{columns.PersistenceId}'
+)
+BEGIN TRY
+    CREATE INDEX IX_{tableName}_{columns.PersistenceId} ON {journalFullTableName}({columns.PersistenceId});
+END TRY
+BEGIN CATCH
+    IF ERROR_NUMBER() = 1913 -- Error code for 'index already exists'
+    BEGIN
+        PRINT 'Index IX_{tableName}_{columns.PersistenceId} already exists, skipping.';
+    END
+    ELSE
+    BEGIN
+        THROW;
+    END
+END CATCH;
 """;
             #endregion
 
@@ -137,6 +179,33 @@ SET @akka_journal_setup = IF(
 PREPARE akka_statement_journal_setup FROM @akka_journal_setup;
 EXECUTE akka_statement_journal_setup;
 DEALLOCATE PREPARE akka_statement_journal_setup;
+
+SET @akka_journal_setup = IF(
+	EXISTS (
+		SELECT 1
+		FROM information_schema.INNODB_INDEXES
+		WHERE NAME = '{tableName}_{columns.PersistenceId}_{columns.Ordering}_idx'
+	), 
+	'SELECT ''Index {tableName}_{columns.PersistenceId}_{columns.Ordering}_idx already exist. Skipping.'';',
+	'CREATE INDEX {tableName}_{columns.PersistenceId}_{columns.Ordering}_idx ON {journalFullTableName} ({columns.PersistenceId}, {columns.Ordering})'
+);
+PREPARE akka_statement_journal_setup FROM @akka_journal_setup;
+EXECUTE akka_statement_journal_setup;
+DEALLOCATE PREPARE akka_statement_journal_setup;
+
+SET @akka_journal_setup = IF(
+	EXISTS (
+		SELECT 1
+		FROM information_schema.INNODB_INDEXES
+		WHERE NAME = '{tableName}_{columns.PersistenceId}_idx'
+	), 
+	'SELECT ''Index {tableName}_{columns.PersistenceId}_idx already exist. Skipping.'';',
+	'CREATE INDEX {tableName}_{columns.PersistenceId}_idx ON {journalFullTableName} ({columns.PersistenceId})'
+);
+PREPARE akka_statement_journal_setup FROM @akka_journal_setup;
+EXECUTE akka_statement_journal_setup;
+DEALLOCATE PREPARE akka_statement_journal_setup;
+
 """;
             #endregion
 
@@ -172,6 +241,20 @@ begin
 		when duplicate_table
 		then raise notice 'index ""{tableName}_{columns.SequenceNumber}_idx"" on {journalFullTableName} already exists, skipping';
 	end;
+
+    begin
+	    create index {tableName}_{columns.PersistenceId}_{columns.Ordering}_idx on {journalFullTableName} ({columns.PersistenceId}, {columns.Ordering} DESC);
+    exception
+	    when duplicate_table
+	    then raise notice 'index ""{tableName}_{columns.PersistenceId}_{columns.Ordering}_idx"" on {journalFullTableName} already exists, skipping';
+    end;
+
+    begin
+	    create index {tableName}_{columns.PersistenceId}_idx on {journalFullTableName} ({columns.PersistenceId});
+    exception
+	    when duplicate_table
+	    then raise notice 'index ""{tableName}_{columns.PersistenceId}_idx"" on {journalFullTableName} already exists, skipping';
+    end;
 end;
 $BLOCK$
 """;
@@ -185,6 +268,8 @@ $BLOCK$
 CREATE UNIQUE INDEX IF NOT EXISTS {tableName}_uq ON {journalFullTableName} ({columns.PersistenceId}, {columns.SequenceNumber});
 CREATE INDEX IF NOT EXISTS {tableName}_{columns.Created}_idx ON {journalFullTableName} ({columns.Created});
 CREATE INDEX IF NOT EXISTS {tableName}_{columns.SequenceNumber}_idx ON {journalFullTableName} ({columns.SequenceNumber});
+CREATE INDEX IF NOT EXISTS {tableName}_{columns.PersistenceId}_{columns.Ordering}_idx ON {journalFullTableName} ({columns.PersistenceId}, {columns.Ordering});
+CREATE INDEX IF NOT EXISTS {tableName}_{columns.PersistenceId}_idx ON {journalFullTableName} ({columns.PersistenceId});
 """;
             #endregion
 
