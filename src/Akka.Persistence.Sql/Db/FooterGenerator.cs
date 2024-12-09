@@ -59,7 +59,7 @@ END TRY
 BEGIN CATCH
     IF ERROR_NUMBER() = 1913 -- Error code for 'index already exists'
     BEGIN
-        PRINT 'Index IX_{tableName}_{columns.Created} already exists, skipping.';
+        PRINT 'Index IX_{tableName}_{columns.SequenceNumber} already exists, skipping.';
     END
     ELSE
     BEGIN
@@ -96,7 +96,7 @@ IF NOT EXISTS (
         name = 'IX_{tableName}_{columns.PersistenceId}_{columns.Ordering}'
 )
 BEGIN TRY
-    CREATE INDEX IX_{tableName}_{columns.PersistenceId}_{columns.Ordering} ON {journalFullTableName}({columns.PersistenceId}, {columns.Ordering});
+    CREATE INDEX IX_{tableName}_{columns.PersistenceId}_{columns.Ordering} ON {journalFullTableName}({columns.PersistenceId}, {columns.Ordering} DESC);
 END TRY
 BEGIN CATCH
     IF ERROR_NUMBER() = 1913 -- Error code for 'index already exists'
