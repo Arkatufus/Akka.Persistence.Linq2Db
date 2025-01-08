@@ -16,7 +16,7 @@ namespace Akka.Persistence.Sql.Tests.Query.SqlServer.TagTable;
 public class SqlServerQueryThrottleSpecs: QueryThrottleSpecsBase<SqlServerContainer>
 {
     public SqlServerQueryThrottleSpecs(ITestOutputHelper output, SqlServerContainer fixture)
-        : base(TagMode.TagTable, output, nameof(Csv.SqlServerAllEventsSpec), fixture)
+        : base(TagMode.TagTable, output, nameof(SqlServerQueryThrottleSpecs), fixture)
     {
     }
 }
