@@ -390,7 +390,7 @@ namespace Akka.Persistence.Sql.Query
                                     : FlowControlEnum.ContinueDelayed;
                             }
 
-                            var nextStartingOffset = envelopes.Count == 0
+                            var nextStartingOffset = xs.Count == 0
                                 ? Math.Max(uf.offset, queryUntil.Max)
                                 : envelopes.Select(r => r.Offset as Sequence)
                                     .Max(t => t?.Value ?? long.MinValue);
